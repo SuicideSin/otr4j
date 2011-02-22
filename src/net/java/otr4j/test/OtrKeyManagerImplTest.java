@@ -1,5 +1,7 @@
-package net.java.otr4j;
+package net.java.otr4j.test;
 
+import net.java.otr4j.OtrKeyManager;
+import net.java.otr4j.OtrKeyManagerImpl;
 import net.java.otr4j.session.SessionID;
 
 public class OtrKeyManagerImplTest extends junit.framework.TestCase {

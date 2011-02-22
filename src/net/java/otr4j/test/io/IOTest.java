@@ -1,4 +1,4 @@
-package net.java.otr4j.io;
+package net.java.otr4j.test.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -8,6 +8,10 @@ import java.security.KeyPair;
 import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.crypto.OtrCryptoEngineImpl;
+import net.java.otr4j.io.OtrInputStream;
+import net.java.otr4j.io.OtrOutputStream;
+import net.java.otr4j.io.SerializationConstants;
+import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
 

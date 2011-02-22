@@ -1,12 +1,14 @@
-package net.java.otr4j;
+package net.java.otr4j.test;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
-import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineImpl;
+import net.java.otr4j.OtrException;
+import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyImpl;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
@@ -164,6 +166,7 @@ public class OtrEngineImplTest extends junit.framework.TestCase {
 		receivedMessage = usBob.transformReceiving(bobSessionID, sentMessage);
 		if (!clearTextMessage.equals(receivedMessage))
 			fail();
+		
 	}
 
 	private void endSession() throws OtrException {
