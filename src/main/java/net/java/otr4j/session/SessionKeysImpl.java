@@ -5,8 +5,8 @@
  */
 package net.java.otr4j.session;
 
-import info.guardianproject.otr.app.im.app.ImApp;
-import info.guardianproject.util.Debug;
+
+
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -23,6 +23,7 @@ import android.util.Log;
 
 /** @author George Politis */
 class SessionKeysImpl implements SessionKeys {
+    private static final String TAG = "SessionKeysImpl";
 
     private String keyDescription;
 
@@ -42,14 +43,14 @@ class SessionKeysImpl implements SessionKeys {
     public void setLocalPair(KeyPair keyPair, int localPairKeyID) {
         this.localPair = keyPair;
         this.setLocalKeyID(localPairKeyID);
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,keyDescription + " current local key ID: " + this.getLocalKeyID());
+
         this.reset();
     }
 
     public void setRemoteDHPublicKey(DHPublicKey pubKey, int remoteKeyID) {
         this.setRemoteKey(pubKey);
         this.setRemoteKeyID(remoteKeyID);
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,keyDescription + " current remote key ID: " + this.getRemoteKeyID());
+
         this.reset();
     }
 
@@ -57,17 +58,9 @@ class SessionKeysImpl implements SessionKeys {
     private byte[] receivingCtr = new byte[16];
 
     public void incrementSendingCtr() {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Incrementing counter for (localkeyID, remoteKeyID) = (" + getLocalKeyID()
-                      + "," + getRemoteKeyID() + ")");
-        // logger.debug("Counter prior increament: " +
-        // Utils.dump(sendingCtr,
-        // true, 16));
         for (int i = 7; i >= 0; i--)
             if (++sendingCtr[i] != 0)
                 break;
-        // logger.debug("Counter after increament: " +
-        // Utils.dump(sendingCtr,
-        // true, 16));
     }
 
     public byte[] getSendingCtr() {
@@ -84,7 +77,7 @@ class SessionKeysImpl implements SessionKeys {
     }
 
     private void reset() {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Resetting " + keyDescription + " session keys.");
+
         Arrays.fill(this.sendingCtr, (byte) 0x00);
         Arrays.fill(this.receivingCtr, (byte) 0x00);
         this.sendingAESKey = null;
@@ -129,7 +122,7 @@ class SessionKeysImpl implements SessionKeys {
         byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
         ByteBuffer buff = ByteBuffer.wrap(h1);
         buff.get(key);
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Calculated sending AES key.");
+
         this.sendingAESKey = key;
         return sendingAESKey;
     }
@@ -147,7 +140,7 @@ class SessionKeysImpl implements SessionKeys {
         byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
         ByteBuffer buff = ByteBuffer.wrap(h1);
         buff.get(key);
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Calculated receiving AES key.");
+
         this.receivingAESKey = key;
 
         return receivingAESKey;
@@ -158,14 +151,14 @@ class SessionKeysImpl implements SessionKeys {
             return sendingMACKey;
 
         sendingMACKey = new OtrCryptoEngineImpl().sha1Hash(getSendingAESKey());
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Calculated sending MAC key.");
+
         return sendingMACKey;
     }
 
     public byte[] getReceivingMACKey() throws OtrException {
         if (receivingMACKey == null) {
             receivingMACKey = new OtrCryptoEngineImpl().sha1Hash(getReceivingAESKey());
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Calculated receiving AES key.");
+
         }
         return receivingMACKey;
     }
@@ -174,7 +167,7 @@ class SessionKeysImpl implements SessionKeys {
         if (s == null) {
             s = new OtrCryptoEngineImpl().generateSecret(getLocalPair().getPrivate(),
                     getRemoteKey());
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Calculating shared secret S.");
+
         }
         return s;
     }

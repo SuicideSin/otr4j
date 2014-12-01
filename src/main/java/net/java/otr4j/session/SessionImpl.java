@@ -6,8 +6,8 @@
 
 package net.java.otr4j.session;
 
-import info.guardianproject.otr.app.im.app.ImApp;
-import info.guardianproject.util.Debug;
+
+
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,7 +47,7 @@ import android.util.Log;
 
 /** @author George Politis */
 public class SessionImpl implements Session {
-
+    private static final String TAG = "SessionImpl";
     private static final int MIN_SESSION_START_INTERVAL = 5000;
     private SessionID sessionID;
     private OtrEngineHost host;
@@ -93,25 +93,21 @@ public class SessionImpl implements Session {
     }
 
     private SessionKeys getEncryptionSessionKeys() {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Getting encryption keys");
+
         return getSessionKeysByIndex(SessionKeys.Previous, SessionKeys.Current);
     }
 
     private SessionKeys getMostRecentSessionKeys() {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Getting most recent keys.");
         return getSessionKeysByIndex(SessionKeys.Current, SessionKeys.Current);
     }
 
     private SessionKeys getSessionKeysByID(int localKeyID, int remoteKeyID) {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Searching for session keys with (localKeyID, remoteKeyID) = (" + localKeyID
-                      + "," + remoteKeyID + ")");
-
         for (int i = 0; i < getSessionKeys().length; i++) {
             for (int j = 0; j < getSessionKeys()[i].length; j++) {
                 SessionKeys current = getSessionKeysByIndex(i, j);
                 if (current.getLocalKeyID() == localKeyID
                     && current.getRemoteKeyID() == remoteKeyID) {
-                    if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Matching keys found.");
+
                     return current;
                 }
             }
@@ -129,17 +125,15 @@ public class SessionImpl implements Session {
     }
 
     private void rotateRemoteSessionKeys(DHPublicKey pubKey) throws OtrException {
-
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Rotating remote keys.");
         SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.Current, SessionKeys.Previous);
         if (sess1.getIsUsedReceivingMACKey()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
+
             getOldMacKeys().add(sess1.getReceivingMACKey());
         }
 
         SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.Previous, SessionKeys.Previous);
         if (sess2.getIsUsedReceivingMACKey()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
+
             getOldMacKeys().add(sess2.getReceivingMACKey());
         }
 
@@ -154,17 +148,15 @@ public class SessionImpl implements Session {
     }
 
     private void rotateLocalSessionKeys() throws OtrException {
-
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Rotating local keys.");
         SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.Previous, SessionKeys.Current);
         if (sess1.getIsUsedReceivingMACKey()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
+
             getOldMacKeys().add(sess1.getReceivingMACKey());
         }
 
         SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.Previous, SessionKeys.Previous);
         if (sess2.getIsUsedReceivingMACKey()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
+
             getOldMacKeys().add(sess2.getReceivingMACKey());
         }
 
@@ -179,7 +171,6 @@ public class SessionImpl implements Session {
     }
 
     private byte[] collectOldMacKeys() {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Collecting old MAC keys to be revealed.");
         int len = 0;
         for (int i = 0; i < getOldMacKeys().size(); i++)
             len += getOldMacKeys().get(i).length;
@@ -193,7 +184,6 @@ public class SessionImpl implements Session {
     }
 
     private void setSessionStatus(SessionStatus sessionStatusNew) throws OtrException {
-
         boolean sessionStatusChanged = (sessionStatus != sessionStatusNew);
 
         sessionStatus = sessionStatusNew;
@@ -202,7 +192,7 @@ public class SessionImpl implements Session {
             case ENCRYPTED:
                 AuthContext auth = this.getAuthContext();
                 ess = auth.getS();
-                if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Setting most recent session keys from auth.");
+
                 for (int i = 0; i < this.getSessionKeys()[0].length; i++) {
                     SessionKeys current = getSessionKeysByIndex(0, i);
                     current.setLocalPair(auth.getLocalDHKeyPair(), 1);
@@ -312,14 +302,13 @@ public class SessionImpl implements Session {
     public String transformReceiving(String msgText, List<TLV> tlvs) throws OtrException, NullPointerException {
         OtrPolicy policy = getSessionPolicy();
         if (!policy.getAllowV1() && !policy.getAllowV2()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Policy does not allow neither V1 not V2, ignoring message.");
             return msgText;
         }
 
         try {
             msgText = assembler.accumulate(msgText);
         } catch (ProtocolException e) {
-            if (Debug.DEBUG_ENABLED) if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"An invalid message fragment was discarded.");
+
             return null;
         }
 
@@ -356,7 +345,7 @@ public class SessionImpl implements Session {
 
             if (auth.getIsSecure()) {
                 this.setSessionStatus(SessionStatus.ENCRYPTED);
-                if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Gone Secure.");
+
             }
             return null;
         default:
@@ -365,32 +354,24 @@ public class SessionImpl implements Session {
     }
 
     private void handleQueryMessage(QueryMessage queryMessage) throws OtrException {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,getSessionID().getLocalUserId() + " received a query message from "
-                      + getSessionID().getRemoteUserId() + " throught "
-                      + getSessionID().getProtocolName() + ".");
-
         setSessionStatus(SessionStatus.PLAINTEXT);
 
         OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(2) && policy.getAllowV2()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Query message with V2 support found.");
+
             getAuthContext().respondV2Auth();
         } else if (queryMessage.versions.contains(1) && policy.getAllowV1()) {
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Query message with V1 support found - ignoring.");
+
         }
     }
 
     private void handleErrorMessage(ErrorMessage errorMessage) throws OtrException {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,getSessionID().getLocalUserId() + " received an error message from "
-                      + getSessionID().getRemoteUserId() + " throught " + getSessionID().getRemoteUserId()
-                      + ".");
-
         OtrPolicy policy = getSessionPolicy();
         // Re-negotiate if we got an error and we are encrypted
         if (policy.getErrorStartAKE() && getSessionStatus() == SessionStatus.ENCRYPTED) {
             showWarning(errorMessage.error + " Initiating encryption.");
 
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Error message starts AKE.");
+
             doTransmitLastMessage = true;
             isLastMessageRetransmit = true;
 
@@ -401,7 +382,7 @@ public class SessionImpl implements Session {
             if (policy.getAllowV2())
                 versions.add(2);
 
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Sending Query");
+
             injectMessage(new QueryMessage(versions));
         } else {
             showError(errorMessage.error);
@@ -409,12 +390,9 @@ public class SessionImpl implements Session {
     }
 
     private String handleDataMessage(DataMessage data, List<TLV> tlvs) throws OtrException {
-        if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,getSessionID().getLocalUserId() + " received a data message from "
-                      + getSessionID().getRemoteUserId() + ".");
-
         switch (this.getSessionStatus()) {
         case ENCRYPTED:
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Message state is ENCRYPTED. Trying to decrypt message.");
+
 
             // Find matching session keys.
             int senderKeyID = data.senderKeyID;
@@ -426,7 +404,7 @@ public class SessionImpl implements Session {
             }
 
             // Verify received MAC with a locally calculated MAC.
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Transforming T to byte[] to calculate it's HmacSHA1.");
+
 
             byte[] serializedT;
             try {
@@ -444,7 +422,7 @@ public class SessionImpl implements Session {
                 throw new OtrException("MAC verification failed, ignoring message");
             }
 
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Computed HmacSHA1 value matches sent one.");
+
 
             // Mark this MAC key as old to be revealed.
             matchingKeys.setIsUsedReceivingMACKey(true);
@@ -461,7 +439,7 @@ public class SessionImpl implements Session {
                 throw new OtrException(e);
             }
 
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Decrypted message: \"" + decryptedMsgContent + "\"");
+
             // FIXME extraKey = authContext.getExtraSymmetricKey();
 
             // Rotate keys if necessary.
@@ -539,14 +517,10 @@ public class SessionImpl implements Session {
     }
 
     private String handlePlainTextMessage(PlainTextMessage plainTextMessage) throws OtrException {
-      //  if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,getSessionID().getLocalUserId() + " received a plaintext message from "
-        //              + getSessionID().getRemoteUserId() + " throught "
-          //            + getSessionID().getProtocolName() + ".");
-
         OtrPolicy policy = getSessionPolicy();
         List<Integer> versions = plainTextMessage.versions;
         if (versions == null || versions.size() < 1) {
-            //if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Received plaintext message without the whitespace tag.");
+
             switch (this.getSessionStatus()) {
             case ENCRYPTED:
             case FINISHED:
@@ -565,7 +539,7 @@ public class SessionImpl implements Session {
                 return plainTextMessage.cleanText;
             }
         } else {
-          //  if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Received plaintext message with the whitespace tag.");
+
             switch (this.getSessionStatus()) {
             case ENCRYPTED:
             case FINISHED:
@@ -583,10 +557,10 @@ public class SessionImpl implements Session {
             }
 
             if (policy.getWhitespaceStartAKE()) {
-                if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"WHITESPACE_START_AKE is set");
+
 
                 if (plainTextMessage.versions.contains(2) && policy.getAllowV2()) {
-                    if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"V2 tag found.");
+
                     getAuthContext().respondV2Auth();
                 } else if (plainTextMessage.versions.contains(1) && policy.getAllowV1()) {
                     throw new UnsupportedOperationException();
@@ -615,9 +589,6 @@ public class SessionImpl implements Session {
                 return msgText;
         case ENCRYPTED:
             this.lastSentMessage = msgText;
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,getSessionID().getLocalUserId() + " sends an encrypted message to "
-                          + getSessionID().getRemoteUserId() + " through "
-                          + getSessionID().getProtocolName() + ".");
 
             // Get encryption keys.
             SessionKeys encryptionKeys = this.getEncryptionSessionKeys();
@@ -656,8 +627,7 @@ public class SessionImpl implements Session {
 
             byte[] data = out.toByteArray();
             // Encrypt message.
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Encrypting message with keyids (localKeyID, remoteKeyID) = ("
-                          + senderKeyID + ", " + receipientKeyID + ")");
+
             byte[] encryptedMsg = otrCryptoEngine.aesEncrypt(encryptionKeys.getSendingAESKey(),
                     ctr, data);
 
@@ -672,7 +642,7 @@ public class SessionImpl implements Session {
             // Calculate T hash.
             byte[] sendingMACKey = encryptionKeys.getSendingMACKey();
 
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Transforming T to byte[] to calculate it's HmacSHA1.");
+
             byte[] serializedT;
             try {
                 serializedT = SerializationUtils.toByteArray(t);
@@ -699,7 +669,7 @@ public class SessionImpl implements Session {
                     + " was not sent.  Either end your private conversation, or restart it.");
             return null;
         default:
-            if (Debug.DEBUG_ENABLED) Log.d(ImApp.LOG_TAG,"Unknown message state, not processing.");
+
             return msgText;
         }
     }
