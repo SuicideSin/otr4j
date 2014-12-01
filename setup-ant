@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+set -x
+
+CURDIR=`pwd`
+
+android update lib-project --path ${CURDIR}
+#android update test-project --path ${CURDIR}/test --main ${CURDIR}
