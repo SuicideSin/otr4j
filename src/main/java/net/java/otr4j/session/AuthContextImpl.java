@@ -5,8 +5,6 @@
  */
 package net.java.otr4j.session;
 
-import info.guardianproject.otr.AndroidLogHandler;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -15,6 +13,7 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Vector;
+import java.util.logging.Handler;
 import java.util.logging.Logger;
 
 import javax.crypto.interfaces.DHPublicKey;
@@ -39,8 +38,6 @@ class AuthContextImpl implements AuthContext {
     public AuthContextImpl(Session session) {
         this.setSession(session);
         this.reset();
-        logger.addHandler(new AndroidLogHandler());
-
     }
 
     private Session session;
@@ -78,6 +75,10 @@ class AuthContextImpl implements AuthContext {
 
     private void setProtocolVersion(int protoVersion) {
         this.protocolVersion = protoVersion;
+    }
+
+    public void setLoggerHandler(Handler handler) {
+        logger.addHandler(handler);
     }
 
     class MessageFactory {
