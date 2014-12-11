@@ -5,8 +5,6 @@
  */
 package net.java.otr4j.session;
 
-import info.guardianproject.otr.app.im.engine.Address;
-
 /** @author George Politis */
 public final class SessionID {
 
@@ -14,15 +12,12 @@ public final class SessionID {
     private String mRemoteUserId;
     private String mProtocolName;
 
-    private String mSessionId;
-
     public static final SessionID Empty = new SessionID(null, null, null);
 
     public SessionID(String localUserId, String remoteUserId, String protocolName) {
        mLocalUserId = localUserId;
        mRemoteUserId = remoteUserId;
        mProtocolName = protocolName;
-       mSessionId = Address.stripResource(mLocalUserId) + '_' + mProtocolName + '_' + Address.stripResource(mRemoteUserId);
     }
 
     public String getLocalUserId ()
@@ -41,8 +36,7 @@ public final class SessionID {
     }
 
     public String toString() {
-        return mSessionId;
-
+        return mLocalUserId + '_' + mProtocolName + '_' + mRemoteUserId;
     }
 
     public boolean equals(Object obj) {
